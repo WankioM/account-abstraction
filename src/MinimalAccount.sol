@@ -11,13 +11,16 @@ import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 
 contract MinimalAccount is IAccount, Ownable  {
    error MinimalAccount_NotFromEntryPoint();
-
+   error MinimalAccount_NotFromEntryPointOrOwner();
+   error MinimalAccount_CallFailed(bytes );
     uint256 ourNonce =0;
     IEntryPoint private immutable i_entryPoint;
 
     constructor( address entryPoint) Ownable(msg.sender) {
         i_entryPoint =IEntryPoint (entryPoint);
     }
+
+    receive() external payable {}
 
     modifier requireFromEntryPoint() {
         if (msg.sender != address(i_entryPoint)) {
@@ -26,6 +29,27 @@ contract MinimalAccount is IAccount, Ownable  {
         _;  
     }
     
+
+    modifier requireFromEntryPointOrOwner() {
+        if (msg.sender != address(i_entryPoint) && msg.sender != owner()) {  // Fixed: Removed extra parenthesis
+            revert MinimalAccount_NotFromEntryPointOrOwner();
+        }
+        _;  
+    }
+
+    /* //////////////////////////////////////////////////
+                    EXTERNAL FUNCTIONS
+   ///////////////////////////////////////////////// **/
+
+   function execute(address dest, uint256 value, bytes calldata functionData)
+    external 
+    requireFromEntryPointOrOwner
+{
+    (bool success, bytes memory result) = dest.call{value: value}(functionData);
+    if (!success) {
+        revert MinimalAccount_CallFailed(result);
+    }
+}
     // A signature is valid if its the Minimal Account owner
 
     function validateUserOp(
@@ -39,6 +63,10 @@ contract MinimalAccount is IAccount, Ownable  {
         // Validate Nonce
         _payPrefund(missingAccountFunds);
     }
+
+    /* //////////////////////////////////////////////////
+                    INTERNAL FUNCTIONS
+   ///////////////////////////////////////////////// **/
 
     function _validateSignature (PackedUserOperation calldata userOp, bytes32 userOpHash) 
     internal
