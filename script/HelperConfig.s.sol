@@ -9,13 +9,15 @@ contract HelperConfig is Script{
     error HelperConfig_InvalidChainId();
 
     struct NetworkConfig {
-        address entrypoint;
+        address entryPoint;
+        address account;
 
     }
 
     uint256 constant ETH_SEPOLIA_CHAIN_ID =11155111;
-    uint256 constant ZKSYNC_SEPOLIA_CHAIN_1D = 300;
+    uint256 constant ZKSYNC_SEPOLIA_CHAIN_ID = 300;
     uint256 constant LOCAL_CHAIN_ID = 31337;
+    adddress constant BURNER_WALLET = 0xA1E6095F3840e01026491a4815a162e5034369C0;
 
     NetworkConfig public localNetworkConfig;
 
@@ -23,17 +25,17 @@ contract HelperConfig is Script{
 
 
     constructor () {
-        networkConfigs(ETH_SEPOLIA_CHAIN_ID) = getEthSepoliaConfig();
+        networkConfigs[ETH_SEPOLIA_CHAIN_ID] = getEthSepoliaConfig();
     }
 
     function getConfig() public returns (NetworkConfig memory){
-        return getConfigbyChainId (block.chainid );
+        return getConfigByChainId(block.chainid);
     }
 
     function getConfigByChainId (uint256 chainId) public  returns (NetworkConfig memory){
         if (chainId == LOCAL_CHAIN_ID){
             return getOrCreateAnvilEthConfig();
-        } else if (networkConfigs[chainId].entryPoint != address(0)) {
+        } else if (networkConfigs[chainId].account!= address(0)) {
             return networkConfigs[chainId];
         } else {
             revert HelperConfig_InvalidChainId();
@@ -43,27 +45,30 @@ contract HelperConfig is Script{
     function getEthSepoliaConfig ()  public pure returns  (NetworkConfig memory) {
         return NetworkConfig (
             {
-                entryPoint: 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
+                entryPoint: 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789, account: BURNER_WALLET
 
             }
-        )
+        );
     }
 
 
     function getzkSyncSepoliaConfig ()  public pure returns  (NetworkConfig memory) {
         return NetworkConfig (
             {
-                entryPoint: address(0)
+                entryPoint: address(0),account: BURNER_WALLET
 
             }
-        )
+        );
     }
 
-    function getOrCreateAnvilEthConfig ()  public pure returns  (NetworkConfig memory) {
+    function getOrCreateAnvilEthConfig ()  public  returns  (NetworkConfig memory) {
         if (localNetworkConfig.entryPoint != address(0)){
             return localNetworkConfig;
         }
-        
-        //deploy mock entry contract
+         // Deploy mock entry contract
+        // TODO: Add mock EntryPoint deployment logic
+        return NetworkConfig({
+            entryPoint: address(0)  // Placeholder
+        });
     }
 }
