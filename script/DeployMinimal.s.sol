@@ -9,7 +9,7 @@ import {HelperConfig} from "script/HelperConfig.s.sol";
 contract DeployMinimal is Script {
 
     function run() public {}
-    function deployMinimalAccount() public returns (HelperConfig.NetworkConfig , MinimalAccount) {
+    function deployMinimalAccount() public returns (HelperConfig , MinimalAccount) {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
@@ -20,16 +20,7 @@ contract DeployMinimal is Script {
         return (helperConfig, minimalAccount);
     }
 
-    // USDC Approval
-    // msg.sender -> MinimalAccount
-    // approve some amount
-    // USDC contract
-    // come from the entrypoint
-
-    functin testOwnerCanExecuteCommands() public {
-        //Arrange
-        //Act
-        //Assert
-    }
+    
+  
 
 }

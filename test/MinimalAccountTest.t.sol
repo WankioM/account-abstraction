@@ -5,13 +5,16 @@ import {Test} from "forge-std/Test.sol";
 import {MinimalAccount} from "src/MinimalAccount.sol";
 import {DeployMinimal} from "script/DeployMinimal.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20.sol"; 
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 contract MinimalAccountTest is Test{
 
     HelperConfig helperConfig;
     MinimalAccount minimalAccount;
     ERC20Mock usdc;
+    address randomUder= makeAddr("randomUser");
+
+    uint256 constant AMOUNT= 1e18;
 
     function setUp() public {
         DeployMinimal deployMinimal = new DeployMinimal();
@@ -19,5 +22,43 @@ contract MinimalAccountTest is Test{
         (helperConfig, minimalAccount)= deployMinimal.deployMinimalAccount();
         usdc= new ERC20Mock();
     }
+
+    //USDC Mint
+    // msg.sender -> MinimalAccount
+    // approve some amount
+    // USDC contract
+    // come from the entrypoint
+
+    function testownerCanExecuteCommands() public {
+        // Arrange
+
+        assertEq(usdc.balanceOf(address(minimalAccount)), 0);
+        address dest = address (usdc);
+        uint256 value = 0;
+        bytes memory functionData = abi.encodeWithSelector(ERC20Mock.mint.selector, address (minimalAccount), AMOUNT);
+        // Act
+        vm.prank(minimalAccount.owner());
+        minimalAccount.execute(dest, value, functionData);
+        // Assert
+        assertEq(usdc.balanceOf(address(minimalAccount)), AMOUNT);
+    }
+
+    function testNonOwnerCannotExecuteCommands() public {
+        // Arrange
+        assertEq(usdc.balanceOf(address(minimalAccount)),0);
+        address dest =address (usdc);
+        uint256 value = 0;
+        bytes memory functionData  = abi.encodeWithSelector(ERC20Mock.mint.selector, address(minimalAccount), AMOUNT);
+
+        //Act
+        vm.prank(minimalAccount.owner());
+        minimalAccount.execute(dest, value, functionData);
+        vm.expectRevert(MinimalAccount.MinimalAccount__NotFromEntryPointOrOwner.selector)
+        //assert
+        assertEq(usdc.balanceOf(address(minimalAccount)), AMOUNT);
+
+    }
+
+    function testValidationOfUserOps public {}
 
 }

@@ -17,7 +17,8 @@ contract HelperConfig is Script{
     uint256 constant ETH_SEPOLIA_CHAIN_ID =11155111;
     uint256 constant ZKSYNC_SEPOLIA_CHAIN_ID = 300;
     uint256 constant LOCAL_CHAIN_ID = 31337;
-    adddress constant BURNER_WALLET = 0xA1E6095F3840e01026491a4815a162e5034369C0;
+    address constant BURNER_WALLET = 0xA1E6095F3840e01026491a4815a162e5034369C0;
+    address constant FOUNDRY_DEFAULT_WALLET= 
 
     NetworkConfig public localNetworkConfig;
 
@@ -67,8 +68,11 @@ contract HelperConfig is Script{
         }
          // Deploy mock entry contract
         // TODO: Add mock EntryPoint deployment logic
-        return NetworkConfig({
-            entryPoint: address(0)  // Placeholder
-        });
+        localNetworkConfig = NetworkConfig({
+    entryPoint: address(0),  // Placeholder
+    account: FOUNDRY_DEFAULT_WALLET
+});
+
+return localNetworkConfig;
     }
 }
