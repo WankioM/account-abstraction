@@ -2,7 +2,8 @@
 
 pragma solidity ^0.8.22;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console2} from "forge-std/Script.sol";
+import {EntryPoint} from "lib/account-abstraction/contracts/core/EntryPoint.sol"
 
 contract HelperConfig is Script{
 
@@ -67,6 +68,10 @@ contract HelperConfig is Script{
             return localNetworkConfig;
         }
          // Deploy mock entry contract
+         console2.log("Deploying mocks...");
+         vm.startBroadcast(FOUNDRY_DEFAULT_WALLET);
+         EntryPoint entryPoint = new EntryPoint();
+         vm.stopbroadcast();
         // TODO: Add mock EntryPoint deployment logic
         localNetworkConfig = NetworkConfig({
     entryPoint: address(0),  // Placeholder

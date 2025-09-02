@@ -6,13 +6,17 @@ import {MinimalAccount} from "src/MinimalAccount.sol";
 import {DeployMinimal} from "script/DeployMinimal.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {SendPackedUserOp} from "script/SendPackedUserOp.s.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract MinimalAccountTest is Test{
 
     HelperConfig helperConfig;
     MinimalAccount minimalAccount;
     ERC20Mock usdc;
-    address randomUder= makeAddr("randomUser");
+    SendPackedUserOp sendPackedUserOp;
+
+    address randomUser= makeAddr("randomUser");
 
     uint256 constant AMOUNT= 1e18;
 
@@ -57,6 +61,20 @@ contract MinimalAccountTest is Test{
         //assert
         assertEq(usdc.balanceOf(address(minimalAccount)), AMOUNT);
 
+    }
+
+    function testrecoverSignedOp() public {
+        //Arrange
+        assertEq(usdc.balanceOf(address(minimalAccount)),0);
+        address dest =address (usdc);
+        uint256 value = 0;
+        bytes memory functionData  = abi.encodeWithSelector(ERC20Mock.mint.selector, address(minimalAccount), AMOUNT);
+        bytes memory executeCallData = abi.encodeWithSelector(MinimalAccount.execute.selector, dest, value, functionData);
+        PackedUserOperation memory packedUserOp = sendPackedUserOp.generateSignedUserOperation(executeCallData, helperConfig.getConfig());
+       bytes32 userOperationHHash= keccak256(packed
+        // Act
+        ECDSA.recover(packedUserOp.hash(), packedUserOp.signature);
+        // Assert
     }
 
     function testValidationOfUserOps public {}
